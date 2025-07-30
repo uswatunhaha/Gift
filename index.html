@@ -45,6 +45,18 @@
             transform: scale(1.05) rotate(2deg);
             box-shadow: 0 15px 30px rgba(254, 90, 136, 0.3);
         }
+
+        .emoji-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .emoji-btn:hover {
+            transform: scale(1.2) rotate(10deg);
+        }
+        
+        .emoji-btn:active {
+            transform: scale(0.9);
+        }
         
         .hidden-message {
             opacity: 0;
@@ -74,7 +86,7 @@
     
     <!-- Music player -->
     <audio id="background-music" loop>
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
     
@@ -95,26 +107,31 @@
             </div>
         </header>
         
-        <!-- Anniversary countdown -->
+        <!-- Mood Diary -->
         <section class="bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl p-6 mb-16 text-center shadow-md">
-            <h2 class="dancing-font text-3xl mb-4 text-pink-700">Our Next Milestone</h2>
-            <div id="countdown" class="flex justify-center gap-4">
-                <div class="bg-white p-4 rounded-lg shadow-md w-20">
-                    <div class="text-3xl font-bold text-pink-600" id="days">00</div>
-                    <div class="text-sm text-purple-700">Days</div>
+            <h2 class="dancing-font text-3xl mb-6 text-pink-700">How's your day today?</h2>
+            
+            <div class="flex justify-center gap-6 mb-8">
+                <button class="emoji-btn text-4xl" data-mood="happy">😊</button>
+                <button class="emoji-btn text-4xl" data-mood="loved">🥰</button>
+                <button class="emoji-btn text-4xl" data-mood="sad">😢</button>
+                <button class="emoji-btn text-4xl" data-mood="excited">🤩</button>
+                <button class="emoji-btn text-4xl" data-mood="tired">🥱</button>
+            </div>
+            
+            <div id="diary-entry" class="hidden max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+                <h3 class="dancing-font text-2xl mb-4 text-purple-700" id="selected-mood-title">Tell me more about your day</h3>
+                <div id="selected-emoji-display" class="text-4xl mb-4"></div>
+                <input type="text" id="diary-name" class="w-full p-3 border border-pink-200 rounded-lg mb-4" placeholder="Your name">
+                <textarea id="diary-text" class="w-full p-3 border border-pink-200 rounded-lg mb-4 min-h-[120px] break-words" rows="5" placeholder="What made you feel this way today? Share your thoughts..."></textarea>
+                <div class="flex gap-4">
+                    <button id="save-entry" class="flex-1 bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-full">Save Entry</button>
+                    <button id="cancel-entry" class="flex-1 bg-gray-400 hover:bg-gray-500 text-gray-800 px-6 py-2 rounded-full">Cancel</button>
                 </div>
-                <div class="bg-white p-4 rounded-lg shadow-md w-20">
-                    <div class="text-3xl font-bold text-pink-600" id="hours">00</div>
-                    <div class="text-sm text-purple-700">Hours</div>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow-md w-20">
-                    <div class="text-3xl font-bold text-pink-600" id="minutes">00</div>
-                    <div class="text-sm text-purple-700">Minutes</div>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow-md w-20">
-                    <div class="text-3xl font-bold text-pink-600" id="seconds">00</div>
-                    <div class="text-sm text-purple-700">Seconds</div>
-                </div>
+            </div>
+            
+            <div id="entries-container" class="mt-8 text-left max-w-2xl mx-auto px-4 space-y-6">
+                <!-- New empty diary -->
             </div>
         </section>
         
@@ -255,44 +272,183 @@
             isMusicPlaying = !isMusicPlaying;
         });
         
-        // Countdown timer (set to next anniversary)
-        function updateCountdown() {
-            // Set your anniversary date (month is 0-indexed, so 0 = January)
-            const anniversaryDate = new Date();
-            anniversaryDate.setMonth(6); // July (example: change to your month)
-            anniversaryDate.setDate(15); // 15th (example: change to your day)
-            
-            // If anniversary already passed this year, set for next year
-            if (anniversaryDate < new Date()) {
-                anniversaryDate.setFullYear(anniversaryDate.getFullYear() + 1);
-            }
-            
-            const now = new Date();
-            const diff = anniversaryDate - now;
-            
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            
-            document.getElementById('days').textContent = days.toString().padStart(2, '0');
-            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
-            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
-            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+        // Mood Diary Functionality
+        const emojiBtns = document.querySelectorAll('.emoji-btn');
+        const diaryEntry = document.getElementById('diary-entry');
+        const diaryText = document.getElementById('diary-text');
+        const saveBtn = document.getElementById('save-entry');
+        const entriesContainer = document.getElementById('entries-container');
+        let currentMood = '';
+        
+        // Generate unique ID for entries
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // Load saved entries
+        function loadEntries() {
+            const entries = JSON.parse(localStorage.getItem('moodDiary')) || [];
+            entriesContainer.innerHTML = entries.map(entry => `
+                <div class="bg-white p-6 rounded-lg shadow-sm mb-6 group" data-id="${entry.id}">
+                    <div class="flex items-start mb-4">
+                        <span class="text-4xl mr-4">${entry.emoji}</span>
+                        <div>
+                            <div class="font-medium text-purple-700 text-lg">${entry.name || 'Anonymous'}</div>
+                            <div class="text-xs text-gray-500 mb-2">
+                                ${new Date(entry.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                <span class="mx-2">•</span>
+                                ${new Date(entry.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-gray-700 mb-4 whitespace-pre-line overflow-hidden break-words">${entry.text}</div>
+                    <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button class="edit-btn text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Edit</button>
+                        <button class="delete-btn text-xs bg-red-100 text-red-700 px-2 py-1 rounded">Delete</button>
+                    </div>
+                </div>
+            `).join('');
         }
         
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
+        // Handle emoji selection
+        emojiBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove selection from all buttons
+                emojiBtns.forEach(emojiBtn => {
+                    emojiBtn.classList.remove('ring-2', 'ring-pink-500', 'transform', 'scale-110');
+                });
+                
+                // Highlight selected emoji
+                btn.classList.add('ring-2', 'ring-pink-500', 'transform', 'scale-110');
+                
+                currentMood = btn.dataset.mood;
+                document.getElementById('selected-mood-title').textContent = 
+                    `Tell me about your ${btn.dataset.mood} day`;
+                document.getElementById('selected-emoji-display').textContent = btn.textContent;
+                diaryEntry.classList.remove('hidden');
+                diaryText.focus();
+                
+                // Pulse animation for selection
+                btn.classList.add('animate-pulse');
+                setTimeout(() => btn.classList.remove('animate-pulse'), 300);
+            });
+        });
+        
+        // Save diary entry
+        saveBtn.addEventListener('click', () => {
+            const text = diaryText.value.trim();
+            if (text) {
+                const emoji = document.querySelector(`.emoji-btn[data-mood="${currentMood}"]`).textContent;
+                const entry = {
+                    id: generateId(),
+                    emoji,
+                    name: document.getElementById('diary-name').value,
+                    text,
+                    date: new Date().toISOString(),
+                    mood: currentMood
+                };
+                
+                const entries = JSON.parse(localStorage.getItem('moodDiary')) || [];
+                entries.push(entry);
+                localStorage.setItem('moodDiary', JSON.stringify(entries));
+                
+                // Reset emoji selection highlights and diary form
+                emojiBtns.forEach(btn => {
+                    btn.classList.remove('ring-2', 'ring-pink-500', 'transform', 'scale-110');
+                });
+                diaryText.value = '';
+                diaryEntry.classList.add('hidden');
+                loadEntries();
+                
+                // Heart animation for feedback
+                for (let i = 0; i < 10; i++) {
+                    setTimeout(createHeart, i * 100);
+                }
+            }
+        });
+        
+        // Cancel entry
+        document.getElementById('cancel-entry').addEventListener('click', () => {
+            // Reset emoji selection highlights
+            emojiBtns.forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-pink-500', 'transform', 'scale-110');
+            });
+            diaryEntry.classList.add('hidden');
+            diaryText.value = '';
+        });
+
+        // Delete entry
+        // Use event delegation for dynamic elements
+        document.addEventListener('click', (e) => {
+            // Only handle clicks inside entries container
+            if (!e.target.closest('#entries-container')) return;
+            if (e.target.classList.contains('delete-btn')) {
+                if (confirm('Are you sure you want to delete this entry?')) {
+                    const entryId = e.target.closest('[data-id]').dataset.id;
+                    const entries = JSON.parse(localStorage.getItem('moodDiary')) || [];
+                    const updatedEntries = entries.filter(entry => entry.id !== entryId);
+                    localStorage.setItem('moodDiary', JSON.stringify(updatedEntries));
+                    loadEntries();
+                    
+                    // Show feedback
+                    for (let i = 0; i < 10; i++) {
+                        setTimeout(createHeart, i * 100);
+                    }
+                }
+            }
+            
+            if (e.target.classList.contains('edit-btn')) {
+                const entryId = e.target.closest('[data-id]').dataset.id;
+                const entries = JSON.parse(localStorage.getItem('moodDiary')) || [];
+                const entryToEdit = entries.find(entry => entry.id === entryId);
+                
+                if (entryToEdit) {
+                    document.getElementById('diary-name').value = entryToEdit.name || '';
+                    document.getElementById('diary-text').value = entryToEdit.text;
+                    
+                    // Remove any existing click handlers
+                    saveBtn.replaceWith(saveBtn.cloneNode(true));
+                    const newSaveBtn = document.getElementById('save-entry');
+                    
+                    // Set new click handler for edit mode
+                    newSaveBtn.addEventListener('click', () => {
+                        const text = diaryText.value.trim();
+                        if (text) {
+                            entryToEdit.name = document.getElementById('diary-name').value;
+                            entryToEdit.text = text;
+                            entryToEdit.date = new Date().toISOString();
+                            localStorage.setItem('moodDiary', JSON.stringify(entries));
+                            loadEntries();
+                            diaryEntry.classList.add('hidden');
+                        }
+                    });
+                    
+                    diaryEntry.classList.remove('hidden');
+                }
+            }
+        });
+
+        // Load existing entries
+        loadEntries();
         
         // Hidden message reveal
         const revealButton = document.getElementById('reveal-button');
         const hiddenMessage = document.getElementById('hidden-message');
         
+        // Initialize reveal state
+        let isRevealed = false;
+        
         revealButton.addEventListener('click', () => {
-            hiddenMessage.classList.add('show-message');
-            revealButton.textContent = 'Read It Again';
+            hiddenMessage.classList.toggle('show-message');
+            if (hiddenMessage.classList.contains('show-message')) {
+                revealButton.textContent = 'Hide Message';
+                isRevealed = true;
+            } else {
+                revealButton.textContent = 'Click for a Special Message';
+                isRevealed = false;
+            }
             
-            // Add floating hearts effect on click
+            // Always add floating hearts effect on click
             for (let i = 0; i < 20; i++) {
                 setTimeout(createHeart, i * 100);
             }
