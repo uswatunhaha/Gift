@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Love</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:wght@300;400;600&display=swap');
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #fff9fb;
+            overflow-x: hidden;
+            color: #5a3d5c;
+        }
+        
+        .dancing-font {
+            font-family: 'Dancing Script', cursive;
+        }
+        
+        .heart {
+            position: absolute;
+            pointer-events: none;
+            animation: animate 6s linear;
+        }
+        
+        @keyframes animate {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--random-x), -1000px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        .photo-frame {
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .photo-frame:hover {
+            transform: scale(1.05) rotate(2deg);
+            box-shadow: 0 15px 30px rgba(254, 90, 136, 0.3);
+        }
+        
+        .hidden-message {
+            opacity: 0;
+            transition: all 0.5s ease;
+            transform: translateY(20px);
+        }
+        
+        .show-message {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen relative">
+    <!-- Floating hearts background -->
+    <div id="hearts-container"></div>
+    
+    <!-- Music player -->
+    <audio id="background-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    
+    <!-- Main content -->
+    <div class="container mx-auto px-4 py-12">
+        <!-- Header with title -->
+        <header class="text-center mb-16">
+            <h1 class="dancing-font text-5xl md:text-7xl font-bold text-pink-600 mb-4 floating">For My Love</h1>
+            <p class="text-xl text-purple-700">Every moment with you is special</p>
+            
+            <div class="mt-8">
+                <button id="music-toggle" class="bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-full shadow-lg transition-all flex items-center mx-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clip-rule="evenodd" />
+                    </svg>
+                    Play Music
+                </button>
+            </div>
+        </header>
+        
+        <!-- Anniversary countdown -->
+        <section class="bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl p-6 mb-16 text-center shadow-md">
+            <h2 class="dancing-font text-3xl mb-4 text-pink-700">Our Next Milestone</h2>
+            <div id="countdown" class="flex justify-center gap-4">
+                <div class="bg-white p-4 rounded-lg shadow-md w-20">
+                    <div class="text-3xl font-bold text-pink-600" id="days">00</div>
+                    <div class="text-sm text-purple-700">Days</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md w-20">
+                    <div class="text-3xl font-bold text-pink-600" id="hours">00</div>
+                    <div class="text-sm text-purple-700">Hours</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md w-20">
+                    <div class="text-3xl font-bold text-pink-600" id="minutes">00</div>
+                    <div class="text-sm text-purple-700">Minutes</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md w-20">
+                    <div class="text-3xl font-bold text-pink-600" id="seconds">00</div>
+                    <div class="text-sm text-purple-700">Seconds</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Hidden message section -->
+        <section class="text-center mb-16">
+            <button id="reveal-button" class="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-full shadow-lg transition-all transform hover:scale-105">
+                Click for a Special Message
+            </button>
+            <div id="hidden-message" class="hidden-message mt-8 max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+                <h3 class="dancing-font text-3xl mb-4 text-pink-600">To My Beloved</h3>
+                <p class="text-lg mb-4">Every day with you is a beautiful adventure. Your smile brightens my darkest days, and your love fills my life with joy.</p>
+                <p class="text-lg mb-4">No matter how much time passes, my feelings for you only grow stronger. You're my favorite hello and my hardest goodbye.</p>
+                <p class="dancing-font text-2xl text-purple-700">Forever yours, always.</p>
+            </div>
+        </section>
+        
+        <!-- Photo gallery -->
+        <section class="mb-16">
+            <h2 class="dancing-font text-4xl text-center mb-10 text-pink-600">Our Special Moments</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="photo-frame bg-white rounded-xl overflow-hidden">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/c7112d23-da6f-40f8-9e22-512f1e0d3eba.png" alt="Couple holding hands on a beach at sunset, waves gently rolling in" class="w-full h-64 object-cover" />
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold text-purple-800">Beach Sunset</h3>
+                        <p class="text-gray-600">Our first vacation together</p>
+                    </div>
+                </div>
+                <div class="photo-frame bg-white rounded-xl overflow-hidden">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/8f778bac-07c3-40d0-8564-d01c046ea3fe.png" alt="Couple laughing while sharing ice cream in a park on a sunny day" class="w-full h-64 object-cover" />
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold text-purple-800">Sweet Moments</h3>
+                        <p class="text-gray-600">Our ice cream date</p>
+                    </div>
+                </div>
+                <div class="photo-frame bg-white rounded-xl overflow-hidden">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/f23a1418-6bff-49da-90af-72690e2c5221.png" alt="Couple taking a selfie in front of a christmas tree wearing matching pajamas" class="w-full h-64 object-cover" />
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold text-purple-800">Festive Cheer</h3>
+                        <p class="text-gray-600">Our first Christmas</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Love notes -->
+        <section class="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-8 mb-16 shadow-md">
+            <h2 class="dancing-font text-3xl text-center mb-8 text-purple-800">Reasons I Love You</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <div class="text-pink-600 text-5xl mb-4">01</div>
+                    <h3 class="text-xl font-semibold mb-2 text-purple-700">Your Kind Heart</h3>
+                    <p class="text-gray-700">You always think of others before yourself.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <div class="text-pink-600 text-5xl mb-4">02</div>
+                    <h3 class="text-xl font-semibold mb-2 text-purple-700">Your Laughter</h3>
+                    <p class="text-gray-700">It's my favorite sound in the world.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <div class="text-pink-600 text-5xl mb-4">03</div>
+                    <h3 class="text-xl font-semibold mb-2 text-purple-700">Your Support</h3>
+                    <p class="text-gray-700">You believe in me even when I don't.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Final surprise -->
+        <section class="text-center">
+            <button id="final-surprise" class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-10 py-4 rounded-full text-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                The Biggest Surprise
+            </button>
+            <div id="surprise-content" class="mt-8 hidden">
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/05b0ba96-e9ab-45e5-a5b1-76683d7ae8aa.png" alt="Romantic candlelit dinner setup with rose petals on table and city lights in background" class="mx-auto rounded-lg shadow-xl mb-6" />
+                <h3 class="dancing-font text-4xl mb-4 text-pink-600">Our Next Adventure Awaits</h3>
+                <p class="text-xl max-w-2xl mx-auto">I've planned a special getaway for us! All you need to do is say yes ❤️</p>
+            </div>
+        </section>
+    </div>
+    
+    <footer class="py-8 text-center text-gray-600">
+        <p>Created with love, just for you</p>
+    </footer>
+    
+    <script>
+        // Floating hearts animation
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.top = Math.random() * 100 + 'vh';
+            
+            // Random size between 10px and 30px
+            const size = Math.random() * 20 + 10;
+            heart.style.width = size + 'px';
+            heart.style.height = size + 'px';
+            
+            // Random rotation
+            heart.style.transform = `rotate(${Math.random() * 360}deg)`;
+            
+            // Random animation duration between 4s and 8s
+            heart.style.animationDuration = Math.random() * 4 + 4 + 's';
+            
+            // Random color variation
+            const colors = ['#ff9ff3', '#feca57', '#ff6b6b', '#48dbfb', '#1dd1a1'];
+            heart.style.color = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Set random movement direction
+            heart.style.setProperty('--random-x', Math.random() * 100 - 50 + 'px');
+            
+            // Heart icon
+            heart.innerHTML = '❤️';
+            
+            document.getElementById('hearts-container').appendChild(heart);
+            
+            // Remove heart after animation completes
+            setTimeout(() => {
+                heart.remove();
+            }, 10000);
+        }
+        
+        // Create hearts periodically
+        setInterval(createHeart, 300);
+        
+        // Music player
+        const musicToggle = document.getElementById('music-toggle');
+        const backgroundMusic = document.getElementById('background-music');
+        let isMusicPlaying = false;
+        
+        musicToggle.addEventListener('click', () => {
+            if (isMusicPlaying) {
+                backgroundMusic.pause();
+                musicToggle.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clip-rule="evenodd" /> Play Music</svg>';
+            } else {
+                backgroundMusic.play();
+                musicToggle.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /> Pause Music</svg>';
+            }
+            isMusicPlaying = !isMusicPlaying;
+        });
+        
+        // Countdown timer (set to next anniversary)
+        function updateCountdown() {
+            // Set your anniversary date (month is 0-indexed, so 0 = January)
+            const anniversaryDate = new Date();
+            anniversaryDate.setMonth(6); // July (example: change to your month)
+            anniversaryDate.setDate(15); // 15th (example: change to your day)
+            
+            // If anniversary already passed this year, set for next year
+            if (anniversaryDate < new Date()) {
+                anniversaryDate.setFullYear(anniversaryDate.getFullYear() + 1);
+            }
+            
+            const now = new Date();
+            const diff = anniversaryDate - now;
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            document.getElementById('days').textContent = days.toString().padStart(2, '0');
+            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+        }
+        
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+        
+        // Hidden message reveal
+        const revealButton = document.getElementById('reveal-button');
+        const hiddenMessage = document.getElementById('hidden-message');
+        
+        revealButton.addEventListener('click', () => {
+            hiddenMessage.classList.add('show-message');
+            revealButton.textContent = 'Read It Again';
+            
+            // Add floating hearts effect on click
+            for (let i = 0; i < 20; i++) {
+                setTimeout(createHeart, i * 100);
+            }
+        });
+        
+        // Final surprise
+        const finalSurprise = document.getElementById('final-surprise');
+        const surpriseContent = document.getElementById('surprise-content');
+        
+        finalSurprise.addEventListener('click', () => {
+            surpriseContent.classList.toggle('hidden');
+            
+            if (!surpriseContent.classList.contains('hidden')) {
+                // Special animation for surprise reveal
+                finalSurprise.textContent = '❤️ You Make Me So Happy ❤️';
+                finalSurprise.classList.add('animate-bounce');
+                
+                // Create a heart explosion
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(createHeart, i * 50);
+                }
+            } else {
+                finalSurprise.textContent = 'The Biggest Surprise';
+                finalSurprise.classList.remove('animate-bounce');
+            }
+        });
+    </script>
+</body>
+</html>
+
